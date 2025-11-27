@@ -1,27 +1,21 @@
+# app/core/database.py
 from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker, declarative_base
-from .config import settings
+from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy.orm import sessionmaker
 
-# Crear la URL de conexión
-DATABASE_URL = (
-    f"mysql+pymysql://{settings.MYSQL_USER}:{settings.MYSQL_PASSWORD}"
-    f"@{settings.MYSQL_HOST}:{settings.MYSQL_PORT}/{settings.MYSQL_DB}"
+# --- Configuration (Should be loaded from app/core/config.py or .env) ---
+# Assuming a MySQL connection string based on the project's technology stack 
+# NOTE: Replace the details below with your actual MySQL credentials
+SQLALCHEMY_DATABASE_URL = "mysql+mysqlconnector://user:password@localhost:3306/playtime_db"
+
+# 1. Create the SQLAlchemy Engine
+engine = create_engine(
+    SQLALCHEMY_DATABASE_URL, 
+    pool_pre_ping=True
 )
 
-# Crear engine
-engine = create_engine(DATABASE_URL)
-
-# Crear sesión
+# 2. Create the Session Factory
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
-# Base para los modelos
+# 3. Create the Base class for declarative models
 Base = declarative_base()
-
-
-# Dependencia para FastAPI
-def get_db():
-    db = SessionLocal()
-    try:
-        yield db
-    finally:
-        db.close()

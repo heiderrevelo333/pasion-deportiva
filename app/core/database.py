@@ -1,12 +1,27 @@
-# app/core/database.py
+# app/core/database.py (Revised)
+import os
+from dotenv import load_dotenv # <-- New import
 from sqlalchemy import create_engine
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
 
-# --- Configuration (Should be loaded from app/core/config.py or .env) ---
-# Assuming a MySQL connection string based on the project's technology stack 
-# NOTE: Replace the details below with your actual MySQL credentials
-SQLALCHEMY_DATABASE_URL = "mysql+mysqlconnector://user:password@localhost:3306/playtime_db"
+# --- Load Environment Variables ---
+# This looks for the .env file and loads its contents into environment variables
+load_dotenv() 
+# --- Configuration ---
+
+# Now, we read the URL from the environment (either from .env or system environment)
+SQLALCHEMY_DATABASE_URL = os.getenv("DATABASE_URL")
+
+if not SQLALCHEMY_DATABASE_URL:
+    raise ValueError("DATABASE_URL environment variable is not set. Check your .env file.")
+
+# If the env contains mysql+mysqlclient but the mysqlclient driver is not available
+# prefer the pure-Python pymysql driver which is easier to install on Windows.
+if SQLALCHEMY_DATABASE_URL.startswith("mysql+mysqlclient"):
+    SQLALCHEMY_DATABASE_URL = SQLALCHEMY_DATABASE_URL.replace(
+        "mysql+mysqlclient", "mysql+pymysql", 1
+    )
 
 # 1. Create the SQLAlchemy Engine
 engine = create_engine(
